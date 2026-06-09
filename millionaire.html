@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>GROM: МИЛЛИОНЕР 💰</title>
+<style>
+  :root{ --cyan:#1ef0ff; --mag:#ff2d9b; --vio:#a64dff; --gold:#ffd23d; }
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; }
+  body{
+    font-family:Arial,sans-serif; color:#fff;
+    background:radial-gradient(900px 600px at 15% 0%, #141a4a 0%, transparent 60%),
+               radial-gradient(900px 600px at 90% 100%, #2a0a3a 0%, transparent 60%),
+               linear-gradient(160deg,#070a22,#06060f);
+    min-height:100%; touch-action:manipulation; user-select:none;
+  }
+  body.obs{ background:transparent !important; }
+  #app{ max-width:640px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; padding:16px; }
+  body.obs #app{
+    background:radial-gradient(700px 460px at 15% 0%, #18204f 0%, transparent 60%), linear-gradient(160deg,#0a0c25,#070611);
+    border:1px solid #2c2c5e; border-radius:22px; box-shadow:0 14px 54px rgba(0,0,0,.55);
+    margin:14px auto; min-height:auto;
+  }
+  .screen{ flex:1; display:flex; flex-direction:column; }
+  .center{ align-items:center; justify-content:center; text-align:center; gap:14px; }
+  .hidden{ display:none !important; }
+  .logo{ font-family:'Arial Black',Arial; font-size:clamp(28px,8vw,54px); letter-spacing:1px; line-height:1.05;
+    background:linear-gradient(90deg,var(--gold),#fff7cf,var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 26px rgba(255,210,61,.4); }
+  .kick{ font-family:'Arial Black',Arial; letter-spacing:4px; font-size:clamp(12px,4vw,17px); color:var(--cyan); }
+  .desc{ font-size:clamp(13px,3.6vw,16px); color:#dcd8f5; max-width:520px; line-height:1.55; opacity:.95; }
+  .btn{ font-family:'Arial Black',Arial; font-size:clamp(17px,5vw,22px); padding:15px 38px; border:none; border-radius:14px;
+    cursor:pointer; color:#06121a; background:linear-gradient(90deg,var(--cyan),#9be7ff); box-shadow:0 0 24px rgba(30,240,255,.5);
+    transition:transform .08s; margin-top:6px; }
+  .btn:active{ transform:scale(.95); }
+  .btn.gold{ color:#3a2a00; background:linear-gradient(90deg,var(--gold),#fff0b0); box-shadow:0 0 24px rgba(255,210,61,.5); }
+  .btn.alt{ color:#fff; background:linear-gradient(90deg,var(--mag),var(--vio)); box-shadow:0 0 24px rgba(255,45,155,.45); }
+  .note{ font-size:12.5px; color:#9b95c0; }
+  #bar{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+  #prize{ font-family:'Arial Black',Arial; font-size:clamp(20px,6vw,30px); color:var(--gold); text-shadow:0 0 16px rgba(255,210,61,.4); }
+  #safe{ font-size:12px; color:#8fe9a0; }
+  .lifelines{ display:flex; gap:8px; }
+  .ll{ font-family:'Arial Black',Arial; font-size:13px; padding:9px 12px; border-radius:11px; cursor:pointer; color:#06121a;
+    background:linear-gradient(90deg,var(--cyan),#9be7ff); border:none; box-shadow:0 0 12px rgba(30,240,255,.4); }
+  .ll:active{ transform:scale(.94); }
+  .ll.used{ background:#2a2a44; color:#6a6790; box-shadow:none; cursor:default; }
+  .progress{ height:6px; border-radius:4px; background:#1a1838; overflow:hidden; margin-bottom:14px; }
+  .progress > div{ height:100%; background:linear-gradient(90deg,var(--gold),var(--mag)); transition:width .3s; }
+  .qbox{ background:linear-gradient(180deg,#141438,#0e0e28); border:1px solid #2a2a55; border-radius:16px;
+    padding:18px 16px; font-family:'Arial Black',Arial; font-size:clamp(15px,4.4vw,20px); line-height:1.4; text-align:center;
+    box-shadow:0 0 30px rgba(40,40,120,.3); margin-bottom:14px; }
+  #qnum{ display:block; font-family:Arial; font-size:12px; letter-spacing:2px; color:var(--cyan); margin-bottom:8px; }
+  .answers{ display:flex; flex-direction:column; gap:10px; }
+  .ans{ display:flex; align-items:center; gap:12px; text-align:left; width:100%; cursor:pointer;
+    background:linear-gradient(180deg,#11163e,#0c1030); border:1.5px solid #2f53a8; border-radius:13px;
+    padding:14px 16px; color:#eaf2ff; font-size:clamp(14px,4vw,17px); font-weight:bold; transition:.15s; }
+  .ans:active{ transform:scale(.99); }
+  .ans .letter{ font-family:'Arial Black',Arial; color:var(--gold); min-width:22px; }
+  .ans.selected{ background:linear-gradient(180deg,#5a4500,#3a2c00); border-color:var(--gold); color:#fff; }
+  .ans.correct{ background:linear-gradient(180deg,#0a5a1e,#073d14); border-color:#3df07a; color:#fff; }
+  .ans.wrong{ background:linear-gradient(180deg,#5a0a1a,#3d0712); border-color:#ff476b; color:#fff; }
+  .ans.dead{ opacity:.22; pointer-events:none; }
+  #poll{ display:flex; gap:10px; justify-content:center; align-items:flex-end; height:96px; margin-bottom:12px; }
+  #poll .col{ display:flex; flex-direction:column; align-items:center; gap:4px; width:46px; }
+  #poll .barwrap{ height:64px; width:26px; background:#16163a; border-radius:6px; display:flex; align-items:flex-end; overflow:hidden; }
+  #poll .barfill{ width:100%; background:linear-gradient(180deg,var(--cyan),var(--vio)); transition:height .5s; }
+  #poll .pl{ font-family:'Arial Black',Arial; font-size:12px; color:var(--gold); }
+  #poll .pv{ font-size:11px; color:#bdb7df; }
+  .big{ font-family:'Arial Black',Arial; font-size:clamp(30px,10vw,64px); color:var(--gold); text-shadow:0 0 26px rgba(255,210,61,.5); line-height:1.05; }
+  .toast{ position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:#15123a; border:1px solid var(--cyan);
+    color:#fff; font-size:14px; padding:10px 18px; border-radius:12px; opacity:0; transition:opacity .25s; z-index:30; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="start" class="screen center">
+    <div class="kick">🎬 ВИКТОРИНА ОТ GROM</div>
+    <div class="logo">КТО ХОЧЕТ СТАТЬ<br>МИЛЛИОНЕРОМ</div>
+    <div class="desc">15 вопросов на любые темы — игры, кино, наука, профессии и не только. Дойди до <b style="color:#ffd23d">3 000 000 ₽</b>! Подсказки <b>50:50</b> и <b>«Помощь зала»</b>, две несгораемые суммы.</div>
+    <button class="btn gold" id="startBtn">НАЧАТЬ ИГРУ 💰</button>
+    <div class="note">@gr0mjkeeee · вопросы каждый раз новые</div>
+  </div>
+
+  <div id="game" class="screen hidden">
+    <div id="bar">
+      <div><div id="prize">500 ₽</div><div id="safe">🔒 несгораемая: 0 ₽</div></div>
+      <div class="lifelines">
+        <button class="ll" id="ll5050">50:50</button>
+        <button class="ll" id="llaud">🗣️ зал</button>
+      </div>
+    </div>
+    <div class="progress"><div id="progFill" style="width:0%"></div></div>
+    <div id="poll" class="hidden"></div>
+    <div class="qbox"><span id="qnum">ВОПРОС 1 / 15</span><span id="qtext">—</span></div>
+    <div class="answers" id="answers"></div>
+  </div>
+
+  <div id="end" class="screen center">
+    <div class="kick" id="endKick">ИГРА ОКОНЧЕНА</div>
+    <div class="big" id="endSum">0 ₽</div>
+    <div class="desc" id="endMsg">—</div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:8px;">
+      <button class="btn gold" id="againBtn">ЕЩЁ РАЗ 🔁</button>
+      <button class="btn alt" id="shareBtn">ПОДЕЛИТЬСЯ 📲</button>
+    </div>
+    <div class="note">кинь свой результат в комменты 😏</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var LADDER=[500,1000,2000,3000,5000,10000,15000,25000,50000,100000,200000,400000,800000,1500000,3000000];
+  var SAFE=[4,9];
+  var BANK=[
+    {q:"Как расшифровывается «GTA»?",a:["Grand Theft Auto","Great Taxi Adventure","Global Tech Army","Grand Turbo Auto"],c:0,d:1},
+    {q:"В какой игре строят из кубических блоков?",a:["FIFA","Minecraft","CS2","Tetris"],c:1,d:1},
+    {q:"Столица России?",a:["Санкт-Петербург","Казань","Москва","Сочи"],c:2,d:1},
+    {q:"Сколько дней в неделе?",a:["5","6","7","8"],c:2,d:1},
+    {q:"Платформа для игровых стримов?",a:["Excel","Twitch","PayPal","Word"],c:1,d:1},
+    {q:"Сколько ног у паука?",a:["6","8","10","4"],c:1,d:1},
+    {q:"Третья планета от Солнца?",a:["Венера","Земля","Марс","Юпитер"],c:1,d:1},
+    {q:"Сколько игроков футбольной команды на поле?",a:["9","10","11","12"],c:2,d:1},
+    {q:"Сколько месяцев в году?",a:["10","11","12","13"],c:2,d:1},
+    {q:"Какой газ нужен человеку для дыхания?",a:["Азот","Кислород","Гелий","Углекислый газ"],c:1,d:1},
+    {q:"Сколько будет 5 + 7?",a:["10","11","12","13"],c:2,d:1},
+    {q:"Кто из животных лает?",a:["Кошка","Собака","Корова","Утка"],c:1,d:1},
+    {q:"Сколько сторон у треугольника?",a:["2","3","4","5"],c:1,d:1},
+    {q:"Самая большая планета Солнечной системы?",a:["Земля","Марс","Юпитер","Венера"],c:2,d:1},
+    {q:"Сколько цветов в радуге (классически)?",a:["5","6","7","8"],c:2,d:1},
+    {q:"При скольких °C замерзает вода?",a:["0","5","10","-10"],c:0,d:1},
+    {q:"Кто готовит еду в ресторане?",a:["Повар","Пилот","Слесарь","Бухгалтер"],c:0,d:1},
+    {q:"Кто лечит зубы?",a:["Хирург","Стоматолог","Окулист","Терапевт"],c:1,d:1},
+    {q:"У какого инструмента чёрно-белые клавиши?",a:["Гитара","Барабан","Пианино","Скрипка"],c:2,d:1},
+    {q:"Сколько минут в часе?",a:["30","60","90","100"],c:1,d:1},
+    {q:"Столица Франции?",a:["Лондон","Берлин","Париж","Рим"],c:2,d:1},
+    {q:"Кнопка на YouTube, если видео понравилось?",a:["Лайк","Дизлайк","Стоп","Назад"],c:0,d:1},
+    {q:"Сколько букв в русском алфавите?",a:["29","31","33","35"],c:2,d:1},
+    {q:"Какой орган качает кровь?",a:["Печень","Сердце","Лёгкие","Желудок"],c:1,d:1},
+    {q:"Кто учит детей в школе?",a:["Учитель","Водитель","Повар","Врач"],c:0,d:1},
+    {q:"Самый большой океан?",a:["Атлантический","Индийский","Тихий","Сев. Ледовитый"],c:2,d:1},
+    {q:"Сколько будет 9 × 9?",a:["72","81","91","99"],c:1,d:1},
+    {q:"В какой игре есть город Лос-Сантос?",a:["GTA","CS2","Roblox","Among Us"],c:0,d:1},
+    {q:"Какой фирменный цвет у Twitch?",a:["Зелёный","Фиолетовый","Красный","Жёлтый"],c:1,d:1},
+    {q:"Сколько игроков в команде в CS2 (соревновательный)?",a:["4","5","6","10"],c:1,d:1},
+
+    {q:"В каком году вышла Counter-Strike 2?",a:["2021","2022","2023","2024"],c:2,d:2},
+    {q:"Кто разработал Counter-Strike и Dota 2?",a:["Riot Games","Valve","Ubisoft","EA"],c:1,d:2},
+    {q:"V-Bucks — валюта какой игры?",a:["Minecraft","Fortnite","PUBG","Roblox"],c:1,d:2},
+    {q:"Магазин цифровых игр от Valve?",a:["Epic Games Store","Steam","GOG","Origin"],c:1,d:2},
+    {q:"Студия, создавшая Valorant?",a:["Valve","Blizzard","Riot Games","EA"],c:2,d:2},
+    {q:"Сколько раундов нужно для победы на карте в CS2 (MR12)?",a:["11","13","15","16"],c:1,d:2},
+    {q:"К какому жанру относятся Fortnite, PUBG и Apex?",a:["Гонки","MOBA","Королевская битва","Файтинг"],c:2,d:2},
+    {q:"Самое мощное снайперское оружие в CS (1 выстрел — килл)?",a:["AWP","Deagle","AK-47","M4"],c:0,d:2},
+    {q:"Компания, создавшая Mario и Zelda?",a:["Sony","Nintendo","Sega","Microsoft"],c:1,d:2},
+    {q:"Кто создал консоль PlayStation?",a:["Microsoft","Nintendo","Sony","Sega"],c:2,d:2},
+    {q:"Кто создал консоль Xbox?",a:["Sony","Microsoft","Nintendo","Atari"],c:1,d:2},
+    {q:"Серия гоночных игр от EA?",a:["Need for Speed","Forza","Gran Turismo","Mario Kart"],c:0,d:2},
+    {q:"Российский сервис подписок и донатов для авторов?",a:["Patreon","Boosty","Discord","Steam"],c:1,d:2},
+    {q:"Сколько костей в теле взрослого человека?",a:["186","206","256","106"],c:1,d:2},
+    {q:"Кто написал «Войну и мир»?",a:["Достоевский","Толстой","Пушкин","Чехов"],c:1,d:2},
+    {q:"Столица Японии?",a:["Сеул","Пекин","Токио","Осака"],c:2,d:2},
+    {q:"Химическая формула воды?",a:["CO2","H2O","O2","NaCl"],c:1,d:2},
+    {q:"Какой металл жидкий при комнатной температуре?",a:["Ртуть","Железо","Алюминий","Медь"],c:0,d:2},
+    {q:"Режиссёр трилогии «Властелин колец»?",a:["Спилберг","Питер Джексон","Кэмерон","Нолан"],c:1,d:2},
+    {q:"В каком сериале есть город Хоукинс и «Изнанка»?",a:["Очень странные дела","Ведьмак","Друзья","Локи"],c:0,d:2},
+    {q:"Кто сыграл Железного человека в Marvel?",a:["Крис Эванс","Роберт Дауни-мл.","Крис Хемсворт","Марк Руффало"],c:1,d:2},
+    {q:"Студия, создавшая мультфильм «История игрушек»?",a:["DreamWorks","Pixar","Illumination","Ghibli"],c:1,d:2},
+    {q:"Франшиза о волшебнике со шрамом на лбу?",a:["Гарри Поттер","Нарния","Сумерки","Перси Джексон"],c:0,d:2},
+    {q:"При скольких °C кипит вода (на уровне моря)?",a:["90","100","120","80"],c:1,d:2},
+    {q:"Кто был первым человеком в космосе?",a:["Армстронг","Гагарин","Леонов","Королёв"],c:1,d:2},
+    {q:"Столица Германии?",a:["Мюнхен","Гамбург","Берлин","Франкфурт"],c:2,d:2},
+    {q:"Какая компания разработала Fortnite?",a:["Epic Games","Valve","Riot","Activision"],c:0,d:2},
+    {q:"Кто пишет программный код?",a:["Инженер","Программист","Дизайнер","Аналитик"],c:1,d:2},
+    {q:"Сколько сердец у осьминога?",a:["1","2","3","4"],c:2,d:2},
+    {q:"В какой игре стороны — террористы и спецназ?",a:["Valorant","Counter-Strike","Overwatch","Apex"],c:1,d:2},
+
+    {q:"Из чего выросла Counter-Strike в 1999 году?",a:["Мод для Doom","Мод для Quake","Мод для Half-Life","Отдельная игра"],c:2,d:3},
+    {q:"В каком году вышла самая первая GTA?",a:["1995","1997","1999","2001"],c:1,d:3},
+    {q:"В каком году вышла Dota 2?",a:["2011","2013","2015","2017"],c:1,d:3},
+    {q:"Кто основал Microsoft вместе с Полом Алленом?",a:["Стив Джобс","Билл Гейтс","Илон Маск","Цукерберг"],c:1,d:3},
+    {q:"Столица Австралии?",a:["Сидней","Мельбурн","Канберра","Перт"],c:2,d:3},
+    {q:"Какой элемент обозначается символом Fe?",a:["Фтор","Железо","Свинец","Фосфор"],c:1,d:3},
+    {q:"В каком году вышел первый iPhone?",a:["2005","2007","2009","2010"],c:1,d:3},
+    {q:"Кто написал «Преступление и наказание»?",a:["Толстой","Достоевский","Гоголь","Тургенев"],c:1,d:3},
+    {q:"Самая высокая гора в мире?",a:["Эльбрус","К2","Эверест","Монблан"],c:2,d:3},
+    {q:"Режиссёр фильмов «Интерстеллар» и «Начало»?",a:["Кристофер Нолан","Вильнёв","Ридли Скотт","Кэмерон"],c:0,d:3},
+    {q:"Студия Naughty Dog создала какую серию?",a:["Halo","The Last of Us","God of War","Gears of War"],c:1,d:3},
+    {q:"В каком году основан YouTube?",a:["2003","2005","2007","2009"],c:1,d:3},
+    {q:"Кто создал теорию относительности?",a:["Ньютон","Эйнштейн","Тесла","Хокинг"],c:1,d:3},
+    {q:"В каком году человек впервые высадился на Луну?",a:["1959","1965","1969","1972"],c:2,d:3},
+    {q:"Какая страна подарила США Статую Свободы?",a:["Великобритания","Франция","Италия","Испания"],c:1,d:3},
+    {q:"Сериал Netflix про наркобарона Пабло Эскобара?",a:["Во все тяжкие","Нарко","Пацаны","Острые козырьки"],c:1,d:3},
+    {q:"Кто сыграл Джокера в фильме 2019 года?",a:["Хит Леджер","Хоакин Феникс","Джаред Лето","Кристиан Бэйл"],c:1,d:3},
+    {q:"Как зовут учителя химии — героя «Во все тяжкие»?",a:["Уолтер Уайт","Джесси Пинкман","Сол Гудман","Хэнк Шрейдер"],c:0,d:3},
+    {q:"Какой химический элемент обозначается Au?",a:["Серебро","Золото","Алюминий","Медь"],c:1,d:3},
+    {q:"По книгам какого автора снят «Игра престолов»?",a:["Дж. Толкин","Дж. Р. Р. Мартин","Джоан Роулинг","Стивен Кинг"],c:1,d:3},
+    {q:"Сколько бит в одном байте?",a:["4","8","16","32"],c:1,d:3},
+    {q:"Режиссёр фильма «Титаник»?",a:["Джеймс Кэмерон","Спилберг","Скорсезе","Ридли Скотт"],c:0,d:3},
+    {q:"Столица Канады?",a:["Торонто","Ванкувер","Оттава","Монреаль"],c:2,d:3},
+    {q:"В каком году вышла GTA V?",a:["2011","2013","2015","2017"],c:1,d:3},
+    {q:"Самая продаваемая видеоигра в истории?",a:["GTA V","Minecraft","Tetris","Wii Sports"],c:1,d:3},
+
+    {q:"Сколько пальцев на одной руке?",a:["4","5","6","10"],c:1,d:1},
+    {q:"Какого цвета обычно трава?",a:["Синяя","Зелёная","Красная","Чёрная"],c:1,d:1},
+    {q:"Сколько будет 2 + 2?",a:["3","4","5","6"],c:1,d:1},
+    {q:"Самое холодное время года?",a:["Лето","Осень","Зима","Весна"],c:2,d:1},
+    {q:"Сколько колёс у легкового автомобиля?",a:["2","3","4","6"],c:2,d:1},
+    {q:"Сколько часов в сутках?",a:["12","18","24","36"],c:2,d:1},
+    {q:"Ближайшая к Земле звезда?",a:["Луна","Солнце","Сириус","Полярная"],c:1,d:1},
+    {q:"Сколько глаз у человека?",a:["1","2","3","4"],c:1,d:1},
+    {q:"Что выпадает зимой?",a:["Снег","Песок","Листья","Пыль"],c:0,d:1},
+    {q:"Сколько будет 10 - 3?",a:["5","6","7","8"],c:2,d:1},
+    {q:"Синий + жёлтый = какой цвет?",a:["Зелёный","Оранжевый","Фиолетовый","Серый"],c:0,d:1},
+    {q:"Кто водит автобус?",a:["Водитель","Пилот","Капитан","Повар"],c:0,d:1},
+    {q:"Сколько лап у кошки?",a:["2","4","6","8"],c:1,d:1},
+    {q:"Какой металл притягивается магнитом?",a:["Золото","Железо","Алюминий","Медь"],c:1,d:1},
+    {q:"Столица Украины?",a:["Львов","Киев","Одесса","Харьков"],c:1,d:1},
+    {q:"Сколько будет 6 × 2?",a:["8","10","12","14"],c:2,d:1},
+    {q:"Самое крупное наземное животное?",a:["Лев","Слон","Жираф","Носорог"],c:1,d:1},
+    {q:"Какую планету называют «красной»?",a:["Венера","Марс","Меркурий","Сатурн"],c:1,d:1},
+    {q:"В чём измеряют массу?",a:["В метрах","В килограммах","В литрах","В секундах"],c:1,d:1},
+    {q:"Кто рисует картины?",a:["Художник","Писатель","Повар","Сварщик"],c:0,d:1},
+    {q:"Сколько сторон у квадрата?",a:["3","4","5","6"],c:1,d:1},
+    {q:"Какой формы наша планета?",a:["Плоская","Шарообразная","Квадратная","Треугольная"],c:1,d:1},
+    {q:"Кто лечит людей?",a:["Врач","Учитель","Повар","Юрист"],c:0,d:1},
+    {q:"Сколько будет 3 × 3?",a:["6","9","12","3"],c:1,d:1},
+    {q:"На чём играют в шахматы?",a:["На доске","На корте","На поле","На карте"],c:0,d:1},
+    {q:"Какое домашнее животное мурлычет?",a:["Собака","Кошка","Попугай","Хомяк"],c:1,d:1},
+    {q:"Какой напиток делают из винограда?",a:["Вино","Пиво","Молоко","Квас"],c:0,d:1},
+    {q:"Сколько ушей у человека?",a:["1","2","3","4"],c:1,d:1},
+    {q:"Что даёт нам свет днём?",a:["Луна","Солнце","Звёзды","Фонарь"],c:1,d:1},
+    {q:"Сколько секунд в минуте?",a:["30","60","90","100"],c:1,d:1},
+
+    {q:"В какой стране придумали пиццу?",a:["Франция","Италия","Греция","Испания"],c:1,d:2},
+    {q:"Сколько струн у классической гитары?",a:["4","6","8","12"],c:1,d:2},
+    {q:"Какое море считается самым солёным?",a:["Чёрное","Мёртвое","Балтийское","Азовское"],c:1,d:2},
+    {q:"Кто написал «Евгения Онегина»?",a:["Пушкин","Лермонтов","Гоголь","Толстой"],c:0,d:2},
+    {q:"Столица Италии?",a:["Милан","Венеция","Рим","Неаполь"],c:2,d:2},
+    {q:"Столица Великобритании?",a:["Манчестер","Лондон","Ливерпуль","Лидс"],c:1,d:2},
+    {q:"Сколько игроков баскетбольной команды на площадке?",a:["4","5","6","7"],c:1,d:2},
+    {q:"Какая компания выпускает iPhone?",a:["Samsung","Apple","Google","Nokia"],c:1,d:2},
+    {q:"Какая соцсеть известна короткими видео?",a:["TikTok","LinkedIn","Pinterest","Reddit"],c:0,d:2},
+    {q:"Сколько зубов у взрослого человека (обычно)?",a:["28","30","32","36"],c:2,d:2},
+    {q:"Кто создал Facebook?",a:["Билл Гейтс","Марк Цукерберг","Стив Джобс","Джек Дорси"],c:1,d:2},
+    {q:"Сколько планет в Солнечной системе?",a:["7","8","9","10"],c:1,d:2},
+    {q:"Какой витамин вырабатывается от солнца?",a:["A","C","D","E"],c:2,d:2},
+    {q:"Кто автор книг о Гарри Поттере?",a:["Толкин","Джоан Роулинг","Стивен Кинг","Дж. Мартин"],c:1,d:2},
+    {q:"Как зовут главного героя «Ведьмака»?",a:["Геральт","Лютик","Весемир","Эмгыр"],c:0,d:2},
+    {q:"Из какой страны компания Toyota?",a:["Германия","Япония","Корея","США"],c:1,d:2},
+    {q:"Из какой страны компания Samsung?",a:["Япония","Китай","Южная Корея","США"],c:2,d:2},
+    {q:"Самое большое государство по площади?",a:["Канада","Китай","США","Россия"],c:3,d:2},
+    {q:"Сколько цветов на флаге России?",a:["2","3","4","5"],c:1,d:2},
+    {q:"В какой игре главный герой — Кратос?",a:["God of War","Halo","Doom","Diablo"],c:0,d:2},
+    {q:"В какой игре главный герой — Мастер Чиф?",a:["Halo","Gears of War","Destiny","Crysis"],c:0,d:2},
+    {q:"Какая компания выпускает серию Assassin's Creed?",a:["Ubisoft","EA","Activision","Valve"],c:0,d:2},
+    {q:"Как называется игра про падающие блоки-тетрамино?",a:["Tetris","Pac-Man","Snake","Arkanoid"],c:0,d:2},
+    {q:"Самая близкая к Солнцу планета?",a:["Меркурий","Венера","Земля","Марс"],c:0,d:2},
+    {q:"Сколько лет в одном веке?",a:["10","50","100","1000"],c:2,d:2},
+    {q:"Самый маленький океан?",a:["Индийский","Северный Ледовитый","Атлантический","Тихий"],c:1,d:2},
+    {q:"Какой фрукт жёлтый и изогнутый?",a:["Банан","Яблоко","Груша","Слива"],c:0,d:2},
+    {q:"Кто разработал ОС Windows?",a:["Apple","Microsoft","Google","IBM"],c:1,d:2},
+    {q:"В какой игре можно строить постройки прямо в бою?",a:["Fortnite","CS2","PUBG","Dota 2"],c:0,d:2},
+    {q:"Основная валюта Евросоюза?",a:["Евро","Доллар","Фунт","Франк"],c:0,d:2},
+    {q:"Сколько ног у насекомых (например, у муравья)?",a:["4","6","8","10"],c:1,d:2},
+    {q:"К какому жанру относятся Dota 2 и League of Legends?",a:["MOBA","Шутер","Гонки","Файтинг"],c:0,d:2},
+    {q:"В какой стране зародилось аниме?",a:["Китай","Япония","Корея","Таиланд"],c:1,d:2},
+    {q:"В каком виде спорта известен Лионель Месси?",a:["Футбол","Баскетбол","Теннис","Хоккей"],c:0,d:2},
+    {q:"Какой инструмент у скрипача?",a:["Скрипка","Труба","Флейта","Арфа"],c:0,d:2},
+
+    {q:"В каком году началась Вторая мировая война?",a:["1914","1939","1941","1945"],c:1,d:3},
+    {q:"В каком году распался СССР?",a:["1989","1991","1993","1985"],c:1,d:3},
+    {q:"Кто написал «Мастера и Маргариту»?",a:["Булгаков","Достоевский","Чехов","Гоголь"],c:0,d:3},
+    {q:"Самая населённая страна мира (2024)?",a:["Китай","Индия","США","Индонезия"],c:1,d:3},
+    {q:"Кто написал «Мону Лизу»?",a:["Да Винчи","Пикассо","Ван Гог","Рафаэль"],c:0,d:3},
+    {q:"Химический символ кислорода?",a:["O","Ox","K","C"],c:0,d:3},
+    {q:"Сколько градусов в прямом угле?",a:["45","90","180","360"],c:1,d:3},
+    {q:"Самый лёгкий химический элемент?",a:["Водород","Гелий","Кислород","Литий"],c:0,d:3},
+    {q:"В каком году затонул «Титаник»?",a:["1905","1912","1920","1898"],c:1,d:3},
+    {q:"Кто открыл закон всемирного тяготения?",a:["Ньютон","Эйнштейн","Галилей","Кеплер"],c:0,d:3},
+    {q:"Столица Бразилии?",a:["Рио-де-Жанейро","Сан-Паулу","Бразилиа","Сальвадор"],c:2,d:3},
+    {q:"Самый твёрдый природный минерал?",a:["Алмаз","Кварц","Гранит","Золото"],c:0,d:3},
+    {q:"Режиссёр «Криминального чтива» и «Убить Билла»?",a:["Тарантино","Скорсезе","Нолан","Финчер"],c:0,d:3},
+    {q:"В какой стране находятся пирамиды Гизы?",a:["Мексика","Египет","Перу","Ирак"],c:1,d:3},
+    {q:"Сколько игроков хоккейной команды на льду (с вратарём)?",a:["5","6","7","11"],c:1,d:3},
+    {q:"Кто был первым президентом США?",a:["Линкольн","Вашингтон","Джефферсон","Франклин"],c:1,d:3},
+    {q:"Студия CD Projekt Red создала какую игру?",a:["The Witcher 3","Skyrim","Fallout","Mass Effect"],c:0,d:3},
+    {q:"Какая компания разработала Grand Theft Auto?",a:["Rockstar Games","Ubisoft","EA","Bethesda"],c:0,d:3},
+    {q:"В каком году состоялся полный релиз Minecraft?",a:["2009","2011","2013","2015"],c:1,d:3},
+    {q:"Какой металл обозначается символом Ag?",a:["Серебро","Золото","Алюминий","Аргон"],c:0,d:3},
+    {q:"Кто написал роман «1984»?",a:["Джордж Оруэлл","Олдос Хаксли","Рэй Брэдбери","Кафка"],c:0,d:3},
+    {q:"Самая маленькая страна мира?",a:["Монако","Ватикан","Сан-Марино","Науру"],c:1,d:3},
+    {q:"Какой газ преобладает в атмосфере Земли?",a:["Кислород","Азот","Углекислый газ","Водород"],c:1,d:3},
+    {q:"Кто сыграл главную роль в «Терминаторе»?",a:["Шварценеггер","Сталлоне","Уиллис","Ван Дамм"],c:0,d:3},
+    {q:"В каком году вышла первая Half-Life?",a:["1996","1998","2000","2004"],c:1,d:3},
+    {q:"Какая компания владеет Instagram и WhatsApp?",a:["Meta","Google","Apple","X"],c:0,d:3},
+    {q:"Кто композитор «Лунной сонаты»?",a:["Бетховен","Моцарт","Бах","Чайковский"],c:0,d:3},
+    {q:"Сколько хромосом у человека?",a:["23","46","48","64"],c:1,d:3},
+    {q:"Кто написал «Машину времени» и «Войну миров»?",a:["Г. Уэллс","Жюль Верн","Конан Дойл","Толкин"],c:0,d:3},
+    {q:"В каком году вышла The Witcher 3?",a:["2013","2015","2017","2019"],c:1,d:3},
+    {q:"Столица Испании?",a:["Барселона","Мадрид","Севилья","Валенсия"],c:1,d:3},
+    {q:"Сколько сторон у шестиугольника?",a:["5","6","7","8"],c:1,d:3},
+    {q:"Кто в 1492 году достиг Америки?",a:["Колумб","Магеллан","Кук","Васко да Гама"],c:0,d:3},
+    {q:"Какой элемент обозначается символом Na?",a:["Натрий","Никель","Азот","Неон"],c:0,d:3},
+    {q:"В каком году вышла Cyberpunk 2077?",a:["2018","2019","2020","2022"],c:2,d:3},
+    {q:"Какая студия создала The Elder Scrolls (Skyrim)?",a:["Bethesda","BioWare","Rockstar","Valve"],c:0,d:3},
+    {q:"В каком году пала Берлинская стена?",a:["1985","1989","1991","1995"],c:1,d:3},
+    {q:"Кто написал картину «Звёздная ночь»?",a:["Ван Гог","Моне","Дали","Мунк"],c:0,d:3},
+    {q:"Какой орган человека самый большой?",a:["Кожа","Печень","Лёгкие","Сердце"],c:0,d:3}
+  ];
+  var LETTERS=["A","B","C","D"];
+  var ROUND=[], level=0, locked=false, used5050=false, usedAud=false;
+
+  function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'; }
+  function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t; } return a; }
+  function guaranteed(reached){ var g=0; for(var i=0;i<SAFE.length;i++){ if(reached>SAFE[i]) g=LADDER[SAFE[i]]; } return g; }
+  function show(el){ $('start').classList.add('hidden'); $('game').classList.add('hidden'); $('end').classList.add('hidden'); el.classList.remove('hidden'); }
+
+  function buildRound(){
+    var set=[];
+    [1,2,3].forEach(function(d){
+      var pool=BANK.filter(function(q){ return q.d===d; });
+      shuffle(pool);
+      pool.slice(0,5).forEach(function(q){ set.push(q); });
+    });
+    ROUND=set.map(function(q){
+      var idx=shuffle([0,1,2,3]);
+      return { q:q.q, a:idx.map(function(i){return q.a[i];}), c:idx.indexOf(q.c) };
+    });
+  }
+
+  function render(){
+    var Q=ROUND[level];
+    $('qnum').textContent='ВОПРОС '+(level+1)+' / 15';
+    $('qtext').textContent=Q.q;
+    $('prize').textContent=fmt(LADDER[level]);
+    $('safe').textContent='🔒 несгораемая: '+fmt(guaranteed(level));
+    $('progFill').style.width=(level/15*100)+'%';
+    $('poll').classList.add('hidden'); $('poll').innerHTML='';
+    var box=$('answers'); box.innerHTML='';
+    Q.a.forEach(function(opt,i){
+      var b=document.createElement('div'); b.className='ans';
+      b.innerHTML='<span class="letter">'+LETTERS[i]+'</span><span class="txt">'+opt+'</span>';
+      b.addEventListener('pointerdown', function(){ choose(i,b); }, {passive:true});
+      box.appendChild(b);
+    });
+    locked=false;
+  }
+
+  function choose(i, el){
+    if(locked||el.classList.contains('dead')) return; locked=true;
+    el.classList.add('selected');
+    var correct=ROUND[level].c, nodes=document.querySelectorAll('.ans');
+    setTimeout(function(){
+      if(i===correct){
+        el.classList.remove('selected'); nodes[i].classList.add('correct');
+        setTimeout(function(){ level++; if(level>=15) win(); else render(); }, 850);
+      } else {
+        el.classList.remove('selected'); nodes[i].classList.add('wrong');
+        if(nodes[correct]) nodes[correct].classList.add('correct');
+        setTimeout(lose, 1300);
+      }
+    }, 1000);
+  }
+
+  function do5050(){
+    if(used5050||locked) return; used5050=true; $('ll5050').classList.add('used');
+    var correct=ROUND[level].c, wrong=[];
+    for(var i=0;i<4;i++) if(i!==correct) wrong.push(i);
+    shuffle(wrong);
+    var nodes=document.querySelectorAll('.ans');
+    wrong.slice(0,2).forEach(function(k){ nodes[k].classList.add('dead'); nodes[k].querySelector('.txt').textContent=''; });
+  }
+
+  function doAud(){
+    if(usedAud||locked) return; usedAud=true; $('llaud').classList.add('used');
+    var correct=ROUND[level].c, alive=[];
+    document.querySelectorAll('.ans').forEach(function(n,i){ if(!n.classList.contains('dead')) alive.push(i); });
+    var pct=[0,0,0,0], base=55+Math.floor(Math.random()*20);
+    pct[correct]=base; var rest=100-base, others=alive.filter(function(i){return i!==correct;});
+    others.forEach(function(idx,k){ pct[idx]= k===others.length-1 ? rest : Math.floor(Math.random()*rest); rest-=pct[idx]; });
+    var poll=$('poll'); poll.innerHTML=''; poll.classList.remove('hidden');
+    alive.forEach(function(i){
+      var col=document.createElement('div'); col.className='col';
+      col.innerHTML='<div class="pv">'+pct[i]+'%</div><div class="barwrap"><div class="barfill" style="height:0%"></div></div><div class="pl">'+LETTERS[i]+'</div>';
+      poll.appendChild(col);
+      var fill=col.querySelector('.barfill');
+      setTimeout(function(){ fill.style.height=pct[i]+'%'; }, 40);
+    });
+  }
+
+  function win(){ $('endKick').textContent='🏆 ПОБЕДА!'; $('endSum').textContent=fmt(3000000);
+    $('endMsg').innerHTML='Ты <b style="color:#ffd23d">МИЛЛИОНЕР</b>! Все 15 вопросов взяты — уровень бога 👑'; show($('end')); }
+  function lose(){ var g=guaranteed(level); $('endKick').textContent='ИГРА ОКОНЧЕНА'; $('endSum').textContent=fmt(g);
+    $('endMsg').textContent='Дошёл до вопроса '+(level+1)+' из 15 и забираешь '+fmt(g)+'. Несгораемые спасли. Ещё разок?'; show($('end')); }
+
+  function start(){ level=0; locked=false; used5050=false; usedAud=false;
+    $('ll5050').classList.remove('used'); $('llaud').classList.remove('used'); buildRound(); show($('game')); render(); }
+
+  function toast(m){ var t=$('toast'); t.textContent=m; t.style.opacity=1; setTimeout(function(){ t.style.opacity=0; },1900); }
+  function share(){
+    var text='Я выбил '+$('endSum').textContent+' в викторине «GROM: МИЛЛИОНЕР» 💰 а ты сколько?';
+    var url=location.href.split('?')[0];
+    if(/^https?:/.test(url)){ window.open('https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(text),'_blank'); }
+    else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ toast('Результат скопирован 😏'); }); }
+    else { toast(text); }
+  }
+
+  if(location.search.indexOf('obs')>=0) document.body.classList.add('obs');
+  $('startBtn').addEventListener('click', start);
+  $('againBtn').addEventListener('click', start);
+  $('shareBtn').addEventListener('click', share);
+  $('ll5050').addEventListener('click', do5050);
+  $('llaud').addEventListener('click', doAud);
+})();
+</script>
+</body>
+</html>
