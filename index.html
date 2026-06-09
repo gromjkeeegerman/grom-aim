@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>GROM AIM 🎯</title>
+<style>
+  :root{ --cyan:#1ef0ff; --mag:#ff2d9b; --vio:#a64dff; }
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ height:100%; }
+  body{
+    font-family:'Arial Black',Arial,sans-serif; color:#fff; overflow:hidden;
+    background:radial-gradient(900px 600px at 20% 0%, #1a1040 0%, transparent 60%),
+               radial-gradient(900px 600px at 90% 100%, #2a0a3a 0%, transparent 60%),
+               linear-gradient(160deg,#0a0a1e,#07060f);
+    touch-action:manipulation; user-select:none;
+  }
+  #app{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; }
+  .screen{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:22px; gap:14px; }
+  .hidden{ display:none !important; }
+  .logo{ font-size:clamp(40px,11vw,84px); letter-spacing:3px;
+    background:linear-gradient(90deg,var(--cyan),var(--vio),var(--mag));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 30px rgba(166,77,255,.45); }
+  .sub{ font-family:Arial,sans-serif; font-size:clamp(14px,4vw,19px); letter-spacing:4px; color:#bdb6e0; }
+  .desc{ font-family:Arial,sans-serif; font-weight:bold; font-size:clamp(13px,3.6vw,17px); color:#e9e6ff; max-width:520px; line-height:1.5; opacity:.92; }
+  .btn{ margin-top:6px; font-family:'Arial Black',Arial,sans-serif; font-size:clamp(18px,5vw,24px);
+    padding:16px 42px; border:none; border-radius:16px; cursor:pointer; color:#06121a;
+    background:linear-gradient(90deg,var(--cyan),#9be7ff);
+    box-shadow:0 0 26px rgba(30,240,255,.55); transition:transform .08s ease; }
+  .btn:active{ transform:scale(.95); }
+  .btn.alt{ color:#fff; background:linear-gradient(90deg,var(--mag),var(--vio)); box-shadow:0 0 26px rgba(255,45,155,.5); }
+  /* HUD */
+  #hud{ position:absolute; top:0; left:0; right:0; height:64px; display:flex; align-items:center;
+    justify-content:space-between; padding:0 18px; font-family:Arial,sans-serif; font-weight:bold; z-index:5; }
+  #hud .box{ font-size:clamp(16px,5vw,22px); }
+  #hud .lbl{ font-size:11px; letter-spacing:2px; color:#9b95c0; display:block; }
+  #time{ color:var(--cyan); } #score{ color:var(--mag); }
+  #combo{ color:#ffd23d; min-width:90px; text-align:center; opacity:0; transition:opacity .2s; }
+  #field{ position:absolute; top:64px; left:0; right:0; bottom:0; overflow:hidden; }
+  .target{ position:absolute; border-radius:50%; cursor:pointer;
+    background:radial-gradient(circle at 35% 30%, #fff, var(--cyan) 45%, #0a6cff 100%);
+    box-shadow:0 0 22px rgba(30,240,255,.8), inset 0 0 14px rgba(255,255,255,.6);
+    display:flex; align-items:center; justify-content:center; animation:pop .12s ease-out; }
+  .target::after{ content:""; width:34%; height:34%; border-radius:50%; background:rgba(255,45,155,.9); box-shadow:0 0 10px var(--mag); }
+  @keyframes pop{ from{ transform:scale(.2); opacity:.2; } to{ transform:scale(1); opacity:1; } }
+  .float{ position:absolute; font-family:'Arial Black',Arial; color:var(--cyan); font-size:26px; pointer-events:none;
+    text-shadow:0 0 12px var(--cyan); animation:rise .5s ease-out forwards; z-index:6; }
+  @keyframes rise{ from{ transform:translateY(0); opacity:1; } to{ transform:translateY(-46px); opacity:0; } }
+  .rank{ font-size:clamp(30px,9vw,58px); margin:4px 0;
+    background:linear-gradient(90deg,var(--cyan),var(--mag)); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 24px rgba(255,45,155,.4); }
+  .big{ font-size:clamp(46px,16vw,110px); color:#fff; text-shadow:0 0 26px rgba(30,240,255,.6); line-height:1; }
+  .row{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+  .note{ font-family:Arial,sans-serif; font-size:13px; color:#9b95c0; margin-top:6px; }
+  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#15123a;
+    border:1px solid var(--cyan); color:#fff; font-family:Arial,sans-serif; font-size:14px; padding:10px 18px;
+    border-radius:12px; opacity:0; transition:opacity .25s; z-index:20; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- START -->
+  <div id="start" class="screen">
+    <div class="sub">🎯 ИГРА ОТ</div>
+    <div class="logo">GROM AIM</div>
+    <div class="desc">Жми по целям как можно быстрее за <b>30 секунд</b>. В конце узнаешь свой CS-ранг. Готов, боец?</div>
+    <button class="btn" id="startBtn">ИГРАТЬ ▶</button>
+    <div class="note">@gr0mjkeeee · твой рекорд сохраняется</div>
+  </div>
+
+  <!-- GAME -->
+  <div id="game" class="screen hidden" style="justify-content:flex-start; padding:0;">
+    <div id="hud">
+      <div class="box"><span class="lbl">ВРЕМЯ</span><span id="time">30</span></div>
+      <div class="box" id="combo">🔥 x1</div>
+      <div class="box" style="text-align:right"><span class="lbl">ЦЕЛИ</span><span id="score">0</span></div>
+    </div>
+    <div id="field"></div>
+  </div>
+
+  <!-- END -->
+  <div id="end" class="screen hidden">
+    <div class="sub">РЕЗУЛЬТАТ</div>
+    <div class="big" id="finalScore">0</div>
+    <div class="sub">целей поражено</div>
+    <div class="rank" id="rankName">SILVER 😅</div>
+    <div class="desc" id="rankMsg">тренируйся, боец</div>
+    <div class="note" id="best">рекорд: 0</div>
+    <div class="row">
+      <button class="btn" id="againBtn">ЕЩЁ РАЗ 🔁</button>
+      <button class="btn alt" id="shareBtn">ПОДЕЛИТЬСЯ 📲</button>
+    </div>
+    <div class="note">кинь свой счёт в комменты — посоревнуемся 😏</div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var DURATION = 30;
+  var $ = function(id){ return document.getElementById(id); };
+  var startS=$('start'), gameS=$('game'), endS=$('end');
+  var field=$('field'), timeEl=$('time'), scoreEl=$('score'), comboEl=$('combo');
+  var score=0, combo=0, timeLeft=DURATION, tickId=null, lifeId=null, target=null, audio=null;
+
+  function show(el){ startS.classList.add('hidden'); gameS.classList.add('hidden'); endS.classList.add('hidden'); el.classList.remove('hidden'); }
+
+  function blip(freq){
+    try{
+      if(!audio) audio = new (window.AudioContext||window.webkitAudioContext)();
+      var o=audio.createOscillator(), g=audio.createGain();
+      o.type='triangle'; o.frequency.value=freq;
+      o.connect(g); g.connect(audio.destination);
+      g.gain.setValueAtTime(.12, audio.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001, audio.currentTime+.12);
+      o.start(); o.stop(audio.currentTime+.12);
+    }catch(e){}
+  }
+
+  function spawn(){
+    if(target) target.remove();
+    var size = Math.max(46, 80 - score*0.8);
+    var w = field.clientWidth, h = field.clientHeight;
+    var pad = 6;
+    var x = pad + Math.random()*(w - size - pad*2);
+    var y = pad + Math.random()*(h - size - pad*2);
+    var t = document.createElement('div');
+    t.className='target';
+    t.style.width=size+'px'; t.style.height=size+'px';
+    t.style.left=x+'px'; t.style.top=y+'px';
+    t.addEventListener('pointerdown', function(ev){ ev.preventDefault(); hit(x+size/2, y+size/2); }, {passive:false});
+    field.appendChild(t); target=t;
+    var life = Math.max(620, 1150 - score*16);
+    clearTimeout(lifeId);
+    lifeId = setTimeout(miss, life);
+  }
+
+  function hit(cx, cy){
+    score++; combo++;
+    scoreEl.textContent = score;
+    if(combo>=2){ comboEl.style.opacity=1; comboEl.textContent='🔥 x'+combo; }
+    var f=document.createElement('div'); f.className='float'; f.textContent='+1';
+    f.style.left=(cx-10)+'px'; f.style.top=(cy-14)+'px'; field.appendChild(f);
+    setTimeout(function(){ f.remove(); }, 500);
+    blip(660 + Math.min(combo,12)*40);
+    clearTimeout(lifeId);
+    spawn();
+  }
+
+  function miss(){
+    combo=0; comboEl.style.opacity=0;
+    spawn();
+  }
+
+  function tick(){
+    timeLeft--;
+    timeEl.textContent = timeLeft;
+    if(timeLeft<=0) endGame();
+  }
+
+  function rankFor(s){
+    if(s>=48) return ['GLOBAL ELITE 👑','ты вообще читер?? 🤨'];
+    if(s>=39) return ['SUPREME 🔥','машина, не человек'];
+    if(s>=31) return ['LEGENDARY EAGLE 🦅','красавчик, так держать'];
+    if(s>=23) return ['MASTER GUARDIAN 🛡️','крепкий уровень'];
+    if(s>=15) return ['GOLD NOVA 🔫','неплохо для разогрева'];
+    return ['SILVER 😅','тренируйся, боец'];
+  }
+
+  function start(){
+    score=0; combo=0; timeLeft=DURATION;
+    scoreEl.textContent='0'; timeEl.textContent=DURATION; comboEl.style.opacity=0;
+    show(gameS);
+    blip(520);
+    spawn();
+    clearInterval(tickId);
+    tickId = setInterval(tick, 1000);
+  }
+
+  function endGame(){
+    clearInterval(tickId); clearTimeout(lifeId);
+    if(target){ target.remove(); target=null; }
+    var r = rankFor(score);
+    $('finalScore').textContent = score;
+    $('rankName').textContent = r[0];
+    $('rankMsg').textContent = r[1];
+    var best = 0;
+    try{ best = parseInt(localStorage.getItem('gromaim_best')||'0',10)||0; }catch(e){}
+    if(score>best){ best=score; try{ localStorage.setItem('gromaim_best', String(best)); }catch(e){} }
+    $('best').textContent = 'твой рекорд: ' + best + (score>=best&&score>0 ? '  🆕' : '');
+    show(endS);
+    blip(440);
+  }
+
+  function toast(msg){
+    var t=$('toast'); t.textContent=msg; t.style.opacity=1;
+    setTimeout(function(){ t.style.opacity=0; }, 1800);
+  }
+
+  function share(){
+    var r = rankFor(score);
+    var text = 'Я выбил ' + score + ' целей в GROM AIM 🎯 ранг: ' + r[0] + ' — а ты сможешь больше?';
+    var url = location.href;
+    // Попытка открыть шеринг в Telegram, иначе копируем в буфер
+    if(/^https?:/.test(url)){
+      window.open('https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(text), '_blank');
+    } else if(navigator.clipboard){
+      navigator.clipboard.writeText(text).then(function(){ toast('Счёт скопирован — вставь в комменты 😏'); });
+    } else {
+      toast(text);
+    }
+  }
+
+  $('startBtn').addEventListener('click', start);
+  $('againBtn').addEventListener('click', start);
+  $('shareBtn').addEventListener('click', share);
+})();
+</script>
+</body>
+</html>
