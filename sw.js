@@ -1,6 +1,7 @@
 // GROM games — service worker для офлайн-режима
-var CACHE = 'grom-games-v1';
-var ASSETS = ['./', 'index.html', 'millionaire.html', 'manifest.json', 'manifest-millionaire.json', 'icon.svg'];
+var CACHE = 'grom-games-v2';
+var ASSETS = ['./', 'index.html', 'millionaire.html', 'guess-footballer.html',
+  'manifest.json', 'manifest-millionaire.json', 'manifest-guess.json', 'icon.svg'];
 
 self.addEventListener('install', function(e){
   e.waitUntil(
