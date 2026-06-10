@@ -1,5 +1,5 @@
 // GROM games — service worker для офлайн-режима
-var CACHE = 'grom-games-v3';
+var CACHE = 'grom-games-v4';
 var ASSETS = ['./', 'index.html', 'millionaire.html', 'guess-footballer.html',
   'manifest.json', 'manifest-millionaire.json', 'manifest-guess.json', 'icon.svg'];
 
